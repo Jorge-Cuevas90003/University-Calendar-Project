@@ -9,6 +9,7 @@ A dynamic, web-based event calendar built with pure PHP, PostgreSQL, and the Ful
 
 This application serves as a personal event manager. It allows users to manage contacts, define different types of events, and visualize them on an interactive monthly, weekly, or daily calendar. The project's main goal was to integrate a powerful JavaScript front-end library (FullCalendar) with a solid PHP backend connected to a PostgreSQL database.
 
+A key aspect of this project was the use of modern tools for resource creation. **The interface icons were designed with the help of image generation from the following artificial intelligence models: Google and ChatGPT**
 ## Key Features
 
 - **Interactive Calendar:** Utilizes **FullCalendar.js** to provide a responsive and user-friendly interface.
