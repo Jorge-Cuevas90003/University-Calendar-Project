@@ -36,7 +36,7 @@ The data persistence layer is handled by a PostgreSQL database. The structure wa
 
 The core design is illustrated in the following Entity-Relationship Diagram (ERD):
 
-![Entity-Relationship Diagram](images/diagrama-entidad-relacion.png)
+![Entity-Relationship Diagram](images/diagrama-entidad-relacion.PNG)
 
 The design is centered around three main entities:
 - **`T_eventos`**: Defines the different categories of events (e.g., 'Birthday', 'Meeting').
