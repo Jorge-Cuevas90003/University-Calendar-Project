@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Calendario</title>
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es.js'></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        #calendar {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 10px;
+        }
+        #event-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        #modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 500;
+        }
+        #event-form {
+            display: flex;
+            flex-direction: column;
+        }
+        #event-form label {
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        #event-form input,
+        #event-form select {
+            margin-bottom: 10px;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        #event-form button {
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        #save-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        #cancel-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        #delete-btn {
+            background-color: #ffc107;
+            color: white;
+        }
+
+        header {
+            background-color: #292929;
+            color: #fff;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            padding: 10px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        nav li {
+            margin-left: 20px;
+        }
+
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            position: relative;
+            padding-bottom: 5px;
+        }
+
+        nav a::before {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #fff;
+            transform: scaleX(0);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        nav a:hover::before {
+            transform: scaleX(1);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Calendario</h1>
+        <nav>
+            <ul>
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="RegistroE.html">Tipos de Eventos</a></li>
+                <li><a href="calendario.html">Eventos</a></li>
+                <li><a href="RegistroC.html">Contactos</a></li>
+            </ul>
+        </nav>
+    </header>
+    <div id="calendar"></div>
+
+    <!-- Modal para eventos -->
+    <div id="modal-overlay" onclick="closeModal()"></div>
+    <div id="event-modal">
+        <form id="event-form">
+            <!-- Campos de entrada para el evento -->
+            <!-- Título -->
+            <label for="title">Título:</label>
+            <input type="text" id="title" name="title" required>
+            <!-- Tipo de evento -->
+            <label for="id_tipo">Tipo de Evento:</label>
+            <select id="id_tipo" name="id_tipo" required></select>
+            <!-- Contacto -->
+            <label for="contacto">Contacto:</label>
+            <select id="contacto" name="contacto" required></select>
+            <!-- Descripción -->
+            <label for="descripcion">Descripción:</label>
+            <input type="text" id="descripcion" name="descripcion" required>
+            <!-- Fecha -->
+            <label for="start">Fecha:</label>
+            <input type="date" id="start" name="start" required>
+            <!-- Hora -->
+            <label for="hora">Hora:</label>
+            <input type="time" id="hora" name="hora" required>
+            <!-- ID del evento (oculto) -->
+            <input type="hidden" id="id_evento" name="id_evento">
+            <!-- Botones para guardar, cancelar y eliminar -->
+            <button type="button" id="save-btn" onclick="saveEvent()">Guardar</button>
+            <button type="button" id="cancel-btn" onclick="closeModal()">Cancelar</button>
+            <button type="button" id="delete-btn" onclick="deleteEvent()">Eliminar</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'es',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                events: 'events.php?action=fetch_events',
+                editable: true,
+                selectable: true,
+                dateClick: function(info) {
+                    openModal();
+                    document.getElementById('start').value = info.dateStr;
+                    document.getElementById('delete-btn').style.display = 'none';
+                },
+                eventClick: function(info) {
+                    openModal();
+                    document.getElementById('title').value = info.event.title;
+                    document.getElementById('descripcion').value = info.event.extendedProps.descripcion;
+                    document.getElementById('start').value = info.event.startStr.substring(0, 10);
+                    document.getElementById('hora').value = info.event.extendedProps.hora;
+                    document.getElementById('id_evento').value = info.event.extendedProps.id_tipo;
+                    document.getElementById('contacto').value = info.event.extendedProps.contacto;
+                    document.getElementById('delete-btn').style.display = 'inline';
+                }
+            });
+
+            calendar.render();
+
+            fetchSelectOptions('fetch_tipos_eventos', 'id_tipo');
+            fetchSelectOptions('fetch_contactos', 'contacto');
+        });
+function fetchSelectOptions(action, selectId) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'events.php?action=' + action, true);
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            try {
+                var options = JSON.parse(xhr.responseText);
+                var select = document.getElementById(selectId);
+                select.innerHTML = '';
+                options.forEach(function(option) {
+                    var opt = new Option(option.text, option.value);
+                    select.appendChild(opt);
+                });
+            } catch (error) {
+                console.error('Error parsing JSON:', error);
+            }
+        } else {
+            console.error('Request failed. Status:', xhr.status);
+        }
+    };
+    xhr.onerror = function() {
+        console.error('Request error');
+    };
+    xhr.send();
+}
+
+
+
+        function openModal() {
+            document.getElementById('modal-overlay').style.display = 'block';
+            document.getElementById('event-modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').style.display = 'none';
+            document.getElementById('event-modal').style.display = 'none';
+            document.getElementById('event-form').reset();
+        }
+
+        function saveEvent() {
+            var id_evento = document.getElementById('id_evento').value;
+            var title = document.getElementById('title').value;
+            var id_tipo = document.getElementById('id_tipo').value;
+            var descripcion = document.getElementById('descripcion').value;
+            var start = document.getElementById('start').value;
+            var hora = document.getElementById('hora').value;
+            var contacto = document.getElementById('contacto').value;
+
+            var data = {
+                id_evento: id_evento,
+                title: title,
+                id_tipo: id_tipo,
+                descripcion: descripcion,
+                start: start,
+                hora: hora,
+                contacto: contacto
+            };
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'events.php?action=save_event', true);
+            xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    window.location.reload();
+                } else {
+                    alert('Error al guardar el evento');
+                }
+            };
+            xhr.send(JSON.stringify(data));
+        }
+
+        function deleteEvent() {
+            var id_evento = document.getElementById('id_evento').value;
+            var title = document.getElementById('title').value;
+            var descripcion = document.getElementById('descripcion').value;
+
+            if (confirm('¿Estás seguro de que deseas eliminar este evento?')) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'events.php?action=delete_event', true);
+                xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        window.location.reload();
+                    } else {
+                        alert('Error al eliminar el evento');
+                    }
+                };
+                xhr.send(JSON.stringify({ id_evento: id_evento, title: title, descripcion: descripcion }));
+            }
+        }
+    </script>
+</body>
+</html>
