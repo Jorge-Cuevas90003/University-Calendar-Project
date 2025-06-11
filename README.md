@@ -27,7 +27,24 @@ This application serves as a personal event manager. It allows users to manage c
 - **Styling:** Bootstrap (for form views)
 
 ---
+---
 
+## Database Design
+
+The data persistence layer is handled by a PostgreSQL database. The structure was designed to be relational and efficient, ensuring data integrity through primary and foreign keys.
+
+The core design is illustrated in the following Entity-Relationship Diagram (ERD):
+
+![Entity-Relationship Diagram](images/diagrama-entidad-relacion.png)
+
+The design is centered around three main entities:
+- **`T_eventos`**: Defines the different categories of events (e.g., 'Birthday', 'Meeting').
+- **`Contactos`**: Stores user contact information.
+- **`A_Eventos` (implemented as `Eventos` in the code)**: The main entity that connects an event type with a contact at a specific date and time.
+
+A key feature, the automated creation of birthday events, is managed by a `TRIGGER` at the database level, which is defined in the `schema.sql` file. This design ensures that business logic related to data integrity is handled robustly by the database itself.
+
+---
 ## Local Setup & Installation
 
 To run this project on your local machine, you will need a local server environment with PHP and PostgreSQL installed.
